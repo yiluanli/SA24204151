@@ -1,0 +1,98 @@
+---
+title: "Homework9"
+author: ""
+date: ""
+output: html_document
+---
+
+# Exercise - 1
+
+为练习 9.8（第 278 页，使用 R 进行统计计算）编写一个 Rcpp 函数。
+
+此示例出现在 [40] 中。考虑双变量密度
+$$
+f(x, y) ∝C_n^x y^{x+a−1}(1 − y)^{n−x+b−1}, x = 0, 1,\cdots, n, 0 ≤ y ≤ 1。
+$$
+可以证明（参见例如 [23]），对于固定的 a、b、n，条件分布为 Binomial(n, y) 和 Beta(x + a, n − x + b)。使用 Gibbs 采样器生成具有目标联合密度 f(x, y) 的链。
+
+解：$(X,Y)\sim f(x,y)$，且 $X|Y=y \sim B(n,y),Y|X=x\sim Beta(x+a,n-x+b)$，则Gibbs采样步骤为：
+
+- 初始值 $X_1=1,Y_1$ 从 $beta(1+a,n-1+b)$ 中生成；
+- 对于 $i=2,\cdots,N$，从 $X|Y=Y_{i-1}$ 生成 $X_i$，从 $Y|X=X_i$ 中生成 $Y_i$；
+
+其实现代码如下所示：
+
+```{r}
+library(Rcpp)
+sourceCpp('gibbsC.cpp')
+
+# 参数设置
+size <- 10       
+iter <- 10000    
+interval <- 20    
+alpha <- 2        
+beta <- 5         
+
+# 调用 C++ 函数生成样本数据
+samples <- gibbsC(iter, interval, size, alpha, beta)
+
+# 显示生成样本的前几行
+head(samples)
+
+```
+
+# Exercise - 2
+
+使用函数“qqplot”将相应生成的随机数与您编写的 R 函数的随机数进行比较。
+
+解：其实现代码如下：
+
+```{r}
+sample_gen <- function(iter, thin, size, alpha, beta) {
+    samples <- matrix(nrow = iter, ncol = 2)
+    x <- y <- 0
+    for (i in 1:iter) {
+        for (j in 1:thin) {
+            x <- rbinom(1, size, y)
+            y <- rbeta(1, x + alpha, size - x + beta)
+        }
+        samples[i, 1] <- x
+        samples[i, 2] <- y
+    }
+    return(samples)
+}
+
+# 调用函数
+generated_samples <- sample_gen(iter, thin, size, alpha, beta)
+
+# 画QQ图
+qqplot(sample_data[, 1], generated_samples[, 1])
+qqplot(sample_data[, 2], generated_samples[, 2])
+
+```
+
+# Exercise - 3
+
+Campare the computation time of the two functions with the function “microbenchmark”.
+
+
+解：其实现代码如下：
+
+```{r}
+library(microbenchmark)
+
+# 基准测试
+bench_results <- microbenchmark(
+    R_func = sample_gen(iter, interval, size, alpha, beta),
+    C_func = gibbsC(iter, interval, size, alpha, beta)
+)
+
+# 提取并展示结果摘要
+summary(bench_results)
+```
+
+# Exercise - 4
+
+Comments your results.
+
+容易看出，`R` 函数和 `C++` 函数都能够产生服从指定分布的样本；结果显示，使用Rcpp的运算结果显著比使用R的结果好，平均时间缩短了90%。
