@@ -1,0 +1,67 @@
+---
+title: "Homework to 24204151"
+author: "li yiluan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Homework to 24204151}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+All my homework answers about Statistical Computing class.
+
+
+# Question
+Use knitr to produce at least three examples(texts,figures,tables).
+
+# Answer
+example one:
+random number generation from the Poisson Distribution
+```{r}
+set.seed(1014)
+x<-rpois(108,lambda=6)
+y<-matrix(rpois(12*9,lambda=6),nrow=12,ncol=9,byrow=TRUE)
+x;y
+```
+
+\
+example two:
+table of time series
+```{r}
+ts(matrix(rpois(108,6),12,9),frequency=12,start=c(1958,1))
+```
+
+\
+example three:
+expression
+```{r}
+x<-1:10
+y<-runif(10)
+z<-rchisq(10,14)
+exp1<-expression(x/(y^2+exp(z)))
+exp1
+eval(exp1)
+D(exp1,"x");D(exp1,"y");D(exp1,"z")
+```
+
+\
+example four:
+graphic split
+```{r}
+m<-matrix(1:16,4,4)
+layout(m,widths=c(1,2,3,4),heights=c(4,3,2,1))
+layout.show(16)
+```
+
+\
+example five:
+```{r}
+x=seq(-10,10,0.01)
+plot(x,exp(((-1/2)*x^2))/sqrt(2*pi),xlim=c(-15,15), ylim=c(0,1), main="标准正态图 ",  
+xlab="x", ylab="y")
+```
+
+
